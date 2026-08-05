@@ -1,0 +1,4 @@
+module(name = "object_pool")
+
+bazel_dep(name = "catch2", version = "3.15.1")
+bazel_dep(name = "rules_cc", version = "0.2.22")
