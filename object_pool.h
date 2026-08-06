@@ -1,5 +1,7 @@
 /// BRIEF: SIMPLE OBJECT POOL IMPL, NO AI GENERATED CODE
 
+/// NOTE: Assumes objects construct themselves.
+
 template <typename T>
 class ObjectPool {
 private:
@@ -39,6 +41,23 @@ private:
     }
 
 public:
+    // Shallow copies will double free, need to delete;
+    ObjectPool(const ObjectPool&) = delete;
+    ObjectPool& operator=(const ObjectPool&) = delete;
+    ObjectPool(ObjectPool&&) = delete;
+    ObjectPool& operator=(ObjectPool&&) = delete;
+
+    ~ObjectPool() {
+        while (batch_stack_) {
+            ObjectBatch* to_delete_batch = batch_stack_;
+            batch_stack_ = batch_stack_->next_batch;
+
+            ObjectNode* batch_start_node = reinterpret_cast<ObjectNode*>(to_delete_batch);
+
+            batch_allocator_.deallocate(batch_start_node, BATCH_SIZE + 1);
+        }
+    }
+
     T* allocate() {
         if (!head_) allocate_batch();
         
